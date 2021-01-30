@@ -1,28 +1,49 @@
-const argv = require("yargs").argv;
-const contacts = require("./contacts");
+const express = require("express");
+const fetch = require("node-fetch");
+const Joi = require("joi");
+const dotenv = require("dotenv");
+const cors = require("cors");
 
-// TODO: рефакторить
-function invokeAction({ action, id, name, email, phone }) {
-  switch (action) {
-    case "list":
-      contacts.listContacts();
-      break;
+dotenv.config();
 
-    case "get":
-      contacts.getContactById(id);
-      break;
+const PORT = process.env.PORT || 8080;
 
-    case "add":
-      contacts.addContact(name, email, phone);
-      break;
+const app = express();
 
-    case "remove":
-      contacts.removeContact(id);
-      break;
+const API_KEY = process.env.OPEN_WEATHER_API_KEY;
 
-    default:
-      console.warn("\x1B[31m Unknown action type!");
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+
+app.get("/weather", validateWeatherQueryParams, async (req, res) => {
+  const {
+    query: { lat, lon },
+  } = req;
+
+  const result = await fetch(`http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}`);
+
+  const data = await result.json();
+  res.json(data);
+});
+
+function validateWeatherQueryParams(req, res, next) {
+  const validationRules = Joi.object({
+    lat: Joi.string().required(),
+    lon: Joi.string().required(),
+  });
+
+  const validationResult = validationRules.validate(req.query);
+
+  if (validationResult.error) {
+    return res.status(400).send(validationResult.error);
   }
+
+  next();
 }
 
-invokeAction(argv);
+app.listen(PORT, () => {
+  console.log("сервер работает на порту: ", PORT);
+});
