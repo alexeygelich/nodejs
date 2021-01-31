@@ -1,28 +1,41 @@
-const argv = require("yargs").argv;
-const contacts = require("./contacts");
+const express = require("express");
+const cors = require("cors");
+const contactRoutes = require("./routes/contact.routes");
 
-// TODO: рефакторить
-function invokeAction({ action, id, name, email, phone }) {
-  switch (action) {
-    case "list":
-      contacts.listContacts();
-      break;
+const PORT = process.env.PORT || 8080;
 
-    case "get":
-      contacts.getContactById(id);
-      break;
+class Server {
+  constructor() {
+    this.server = null;
+  }
 
-    case "add":
-      contacts.addContact(name, email, phone);
-      break;
+  start() {
+    this.server = express();
+    this.initMiddlewares();
+    this.initRoutes();
+    this.listen();
+  }
 
-    case "remove":
-      contacts.removeContact(id);
-      break;
+  initMiddlewares() {
+    this.server.use(express.json());
+    this.server.use(
+      cors({
+        origin: "*",
+      })
+    );
+  }
 
-    default:
-      console.warn("\x1B[31m Unknown action type!");
+  initRoutes() {
+    this.server.use("/contacts", contactRoutes);
+  }
+
+  listen() {
+    this.server.listen(PORT, () => {
+      console.log("Server is listening on port: ", PORT);
+    });
   }
 }
 
-invokeAction(argv);
+const server = new Server();
+
+server.start();

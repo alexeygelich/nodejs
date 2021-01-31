@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -20,7 +19,9 @@
   },
   "homepage": "https://github.com/alexeygelich/nodejs#readme",
   "dependencies": {
-    "nodemon": "^2.0.7",
-    "yargs": "^16.2.0"
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "joi": "^17.3.0",
+    "nodemon": "^2.0.7"
   }
 }
