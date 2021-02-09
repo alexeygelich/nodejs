@@ -1,20 +1,36 @@
-module.exports = [
-  {
-    id: 1,
-    name: "Adam",
-    email: "adam@qwe.com",
-    phone: "099 999 44 88",
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+
+const ContactSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
   },
-  {
-    id: 2,
-    name: "Eva",
-    email: "Eva@qwe.com",
-    phone: "099 999 44 88",
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: (value) => value.includes("@"),
   },
-  {
-    id: 3,
-    name: "Jhon",
-    email: "Jhon@qwe.com",
-    phone: "099 999 44 88",
+  phone: {
+    type: String,
+    required: true,
   },
-];
+  subscription: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 8,
+    maxlength: 16,
+  },
+  token: {
+    type: String,
+  },
+});
+
+const Contact = mongoose.model("Contacts", ContactSchema);
+
+module.exports = Contact;

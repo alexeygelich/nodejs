@@ -1,21 +1,27 @@
-const contacts = require("../models/Contact");
+const {
+  Types: { ObjectId },
+} = require("mongoose");
+const Contacts = require("../models/Contact");
 const Joi = require("joi");
 
 class ContactController {
-  listContacts = (req, res) => {
-    res.json(contacts);
+  listContacts = async (req, res) => {
+    try {
+      const allContacts = await Contacts.find();
+      res.json(allContacts);
+    } catch (error) {
+      res.status(400).send(err);
+    }
   };
 
-  addContact = (req, res) => {
-    const { body } = req;
-    const arrayIndex = contacts.map(({ id }) => id);
-    const index = Math.max(...arrayIndex) + 1;
-    const createdContact = {
-      ...body,
-      id: index,
-    };
-    contacts.push(createdContact);
-    res.status(201).json(createdContact);
+  addContact = async (req, res) => {
+    try {
+      const { body } = req;
+      const newContact = await Contacts.create(body);
+      res.status(201).json(newContact);
+    } catch (err) {
+      res.status(400).send(err);
+    }
   };
 
   validateCreateContact(req, res, next) {
@@ -23,6 +29,8 @@ class ContactController {
       name: Joi.string().required(),
       email: Joi.string().required(),
       phone: Joi.string().required(),
+      subscription: Joi.string().required(),
+      password: Joi.string().required(),
     });
 
     const validationResult = validationRules.validate(req.body);
@@ -34,26 +42,22 @@ class ContactController {
     next();
   }
 
-  findContactIndex = (contactId) => {
-    const index = parseInt(contactId);
-    return contacts.findIndex(({ id }) => id === index);
-  };
+  updateContact = async (req, res) => {
+    try {
+      const { contactId } = req.params;
+      const { body } = req;
+      const updatedContact = await Contacts.findByIdAndUpdate(contactId, body, {
+        new: true,
+      });
 
-  updateContact = (req, res) => {
-    const {
-      params: { contactId },
-    } = req;
+      if (!updatedContact) {
+        return res.status(404).json({ message: "Not found" });
+      }
 
-    const contactIndex = this.findContactIndex(contactId);
-
-    const updateedUser = {
-      ...contacts[contactIndex],
-      ...req.body,
-    };
-
-    contacts[contactIndex] = updateedUser;
-
-    res.json(updateedUser);
+      res.json(updatedContact);
+    } catch (err) {
+      res.status(400).send(err);
+    }
   };
 
   validateUpdateContact(req, res, next) {
@@ -61,49 +65,54 @@ class ContactController {
       name: Joi.string(),
       email: Joi.string(),
       phone: Joi.string(),
-    });
+      subscription: Joi.string(),
+      password: Joi.string(),
+    }).min(1);
 
     const validationResult = validationRules.validate(req.body);
 
     if (validationResult.error) {
-      return res.status(400).json({ message: "missing fields" });
+      return res.status(400).json({ message: "field format need to be a string" });
     }
 
     next();
   }
 
   validateContactID = (req, res, next) => {
-    const {
-      params: { contactId },
-    } = req;
+    const { contactId } = req.params;
 
-    const contactIndex = this.findContactIndex(contactId);
-
-    if (contactIndex === -1) {
-      return res.status(404).json({ message: "Not found" });
+    if (!ObjectId.isValid(contactId)) {
+      return res.status(400).json({ message: "Your id is not valid" });
     }
+
     next();
   };
 
-  removeContact = (req, res) => {
-    const {
-      params: { contactId },
-    } = req;
-
-    const contactIndex = this.findContactIndex(contactId);
-
-    contacts.splice(contactIndex, 1);
-
-    res.json({ message: "contact deleted" });
+  removeContact = async (req, res) => {
+    const { contactId } = req.params;
+    try {
+      const deletedContact = await Contacts.findByIdAndDelete(contactId);
+      if (deletedContact) {
+        return res.status(200).json({ message: "contact deleted" });
+      }
+      res.status(404).json({ message: "Not found" });
+    } catch (err) {
+      res.status(400).send(err);
+    }
   };
 
-  getById = (req, res) => {
-    const {
-      params: { contactId },
-    } = req;
+  getById = async (req, res) => {
+    const { contactId } = req.params;
+    try {
+      const getContact = await Contacts.findById(contactId);
 
-    const getContact = contacts.find(({ id }) => +contactId === id);
-    res.json(getContact);
+      if (getContact) {
+        res.json(getContact);
+      }
+      return res.status(404).json({ message: "Not found" });
+    } catch (err) {
+      res.status(400).send(err);
+    }
   };
 }
 
