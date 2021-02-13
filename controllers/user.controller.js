@@ -102,12 +102,18 @@ async function validateUniqueEmail(req, res, next) {
     body: { email },
   } = req;
 
-  const findEmail = await User.findOne({ email });
-
-  if (findEmail) {
-    return res.status(409).json({ message: "Email in use" });
+  // const findEmail = await User.findOne({ email });
+  try {
+    console.log("email", email);
+    const findEmail = await User.findOne({ email });
+    console.log("findEmail", findEmail);
+  } catch (error) {
+    return console.log("error", error);
   }
 
+  // if (findEmail) {
+  //   return res.status(409).json({ message: "Email in use" });
+  // }
   next();
 }
 
