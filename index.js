@@ -2,58 +2,53 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const bcryptjs = require("bcryptjs");
 const contactRoutes = require("./routes/contact.routes");
+const userRouters = require("./routes/user.routes");
 
 dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 
-class Server {
-  constructor() {
-    this.server = null;
-  }
-
-  start() {
-    this.server = express();
-    this.initMiddlewares();
-    this.connectToDb();
-    this.initRoutes();
-    this.listen();
-  }
-
-  async connectToDb() {
-    try {
-      const data = await mongoose.connect(process.env.MONGO_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
-      console.log("Database connection successful");
-    } catch (err) {
-      console.log(err);
-      process.exit(1);
-    }
-  }
-
-  initMiddlewares() {
-    this.server.use(express.json());
-    this.server.use(
-      cors({
-        origin: "*",
-      })
-    );
-  }
-
-  initRoutes() {
-    this.server.use("/contacts", contactRoutes);
-  }
-
-  listen() {
-    this.server.listen(PORT, () => {
-      console.log("Server is listening on port: ", PORT);
+async function connectToDb() {
+  try {
+    const data = await mongoose.connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
+    console.log("Database connection successful");
+  } catch (err) {
+    console.log(err);
+    process.exit(1);
   }
 }
 
-const server = new Server();
+function initMiddlewares() {
+  server.use(express.json());
+  server.use(
+    cors({
+      origin: "*",
+    })
+  );
+}
 
-server.start();
+function initRoutes() {
+  server.use("/contacts", contactRoutes);
+  server.use("/", userRouters);
+}
+
+function listen() {
+  server.listen(PORT, () => {
+    console.log("Server is listening on port: ", PORT);
+  });
+}
+
+function start() {
+  server = express();
+  initMiddlewares();
+  connectToDb();
+  initRoutes();
+  listen();
+}
+
+start();
