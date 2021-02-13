@@ -56,8 +56,8 @@ async function getUser(req, res) {
 async function logoutUser(req, res) {
   const { email } = req.user;
   try {
-    await User.updateOne({ email }, { token: null });
-    res.status(204);
+    const qwe = await User.updateOne({ email }, { token: null });
+    res.status(204).send();
   } catch (error) {
     res.status(401).json({ message: "Not authorized" });
   }
