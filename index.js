@@ -2,7 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const bcryptjs = require("bcryptjs");
 const contactRoutes = require("./routes/contact.routes");
+const userRouters = require("./routes/user.routes");
 
 dotenv.config();
 
@@ -45,6 +47,7 @@ class Server {
 
   initRoutes() {
     this.server.use("/contacts", contactRoutes);
+    this.server.use("/", userRouters);
   }
 
   listen() {

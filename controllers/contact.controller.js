@@ -6,11 +6,15 @@ const Joi = require("joi");
 
 class ContactController {
   listContacts = async (req, res) => {
+    const { sub, page, limit } = req.query;
+    const options = page && limit ? { page, limit } : {};
+    const subscription = sub ? { subscription: sub } : {};
+
     try {
-      const allContacts = await Contacts.find();
-      res.json(allContacts);
+      const { docs } = await Contacts.paginate(subscription, options);
+      res.json(docs);
     } catch (error) {
-      res.status(400).send(err);
+      res.status(400).send(error);
     }
   };
 
