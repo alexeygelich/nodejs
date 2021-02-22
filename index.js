@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const bcryptjs = require("bcryptjs");
 const contactRoutes = require("./routes/contact.routes");
 const userRouters = require("./routes/user.routes");
 
@@ -30,6 +29,7 @@ function initMiddlewares() {
       origin: "*",
     })
   );
+  server.use("/images", express.static("public/images"));
 }
 
 function initRoutes() {

@@ -7,15 +7,20 @@ const {
   authorize,
   getUser,
   logoutUser,
-  updateSubUser
+  updateSubUser,
+  updateAvatarUser,
+  upload,
+  minifyImage,
+  generateAvatar,
 } = require("../controllers/user.controller");
 
 const router = Router();
 
-router.post("/auth/register", validateEmailPassUser, validateUniqueEmail, createUser);
+router.post("/auth/register", validateEmailPassUser, validateUniqueEmail, generateAvatar, minifyImage, createUser);
 router.post("/auth/login", validateEmailPassUser, loginUser);
 router.get("/users/current", authorize, getUser);
 router.post("/auth/logout", authorize, logoutUser);
 router.patch("/users", authorize, updateSubUser);
+router.patch("/users/avatars", authorize, upload.single("avatar"), minifyImage, updateAvatarUser);
 
 module.exports = router;
