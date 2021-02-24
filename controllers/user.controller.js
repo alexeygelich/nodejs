@@ -1,15 +1,21 @@
-const path = require("path");
 const { promises: fsPromises } = require("fs");
 
+const path = require("path");
+const dotenv = require("dotenv");
 const bcryptjs = require("bcryptjs");
 const Joi = require("joi");
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
-const Avatar = require("avatar-builder");
 const multer = require("multer");
 const imagemin = require("imagemin");
 const imageminJpegtran = require("imagemin-jpegtran");
 const imageminPngquant = require("imagemin-pngquant");
+const jwt = require("jsonwebtoken");
+const Avatar = require("avatar-builder");
+const { v4: uuidv4 } = require("uuid");
+const sgMail = require("@sendgrid/mail");
+
+const User = require("../models/User");
+
+dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 const domain = `http://localhost:${PORT}/`;
@@ -61,18 +67,60 @@ async function generateAvatar(req, res, next) {
 async function createUser(req, res) {
   const avatarURL = req.avatarURL;
   const { body } = req;
+
   try {
     const hashedPassword = await bcryptjs.hash(body.password, 14);
+    const verificationToken = uuidv4();
+
     const user = await User.create({
       ...body,
       password: hashedPassword,
       avatarURL,
+      verificationToken,
     });
     const { email, subscription } = user;
+
+    sendVerificationEmail(email, verificationToken);
 
     res.status(201).json({ email, subscription, avatarURL });
   } catch (error) {
     res.status(400).send(error);
+  }
+}
+
+async function verifyUser(req, res) {
+  const {
+    params: { verificationToken },
+  } = req;
+
+  const user = await User.findOne({ verificationToken });
+
+  if (!user) {
+    return res.status(404).json("User not found");
+  }
+
+  user.verificationToken = undefined;
+
+  try {
+    await user.save();
+    res.status(200).send();
+  } catch (error) {
+    console.log("error", error);
+  }
+}
+
+async function sendVerificationEmail(email, token) {
+  const msg = {
+    to: email, // Change to your recipient
+    from: "alexeygelich@gmail.com", // Change to your verified sender
+    subject: "Please verify your account",
+    html: `Welcom to our application. To verify your account click by <a href="${domain}auth/verify/${token}">Link</a>`,
+  };
+
+  try {
+    await sgMail.send(msg);
+  } catch (error) {
+    console.log("error", error);
   }
 }
 
@@ -248,4 +296,5 @@ module.exports = {
   upload,
   minifyImage,
   generateAvatar,
+  verifyUser,
 };

@@ -12,12 +12,15 @@ const {
   upload,
   minifyImage,
   generateAvatar,
+  verifyUser,
 } = require("../controllers/user.controller");
 
 const router = Router();
-
 router.post("/auth/register", validateEmailPassUser, validateUniqueEmail, generateAvatar, minifyImage, createUser);
 router.post("/auth/login", validateEmailPassUser, loginUser);
+
+router.get("/auth/verify/:verificationToken", verifyUser);
+
 router.get("/users/current", authorize, getUser);
 router.post("/auth/logout", authorize, logoutUser);
 router.patch("/users", authorize, updateSubUser);
